@@ -4,7 +4,6 @@ pub fn get() -> KeyCode {
     // Enable raw mode to get input immediately
     enable_raw_mode().unwrap();
 
-    
     loop {
         let mut input: Option<KeyCode> = None;
         if event::poll(std::time::Duration::from_millis(500)).unwrap() {
