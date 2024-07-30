@@ -15,6 +15,12 @@ pub fn get() -> KeyCode {
                     KeyCode::Left => Some(key_event.code),
                     KeyCode::Right => Some(key_event.code),
                     KeyCode::Esc => Some(key_event.code),
+
+                    KeyCode::Char('h') => Some(KeyCode::Left),
+                    KeyCode::Char('j') => Some(KeyCode::Down),
+                    KeyCode::Char('k') => Some(KeyCode::Up),
+                    KeyCode::Char('l') => Some(KeyCode::Right),
+                    KeyCode::Char(' ') => Some(KeyCode::Enter),
                     KeyCode::Char('q')=> exit(0),
                     
                     _ => None 
