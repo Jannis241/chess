@@ -1,5 +1,3 @@
-use std::{result, thread::panicking, vec};
-
 use crate::*;
 
 const UP: i32 = -8;
@@ -18,17 +16,17 @@ pub enum Color {
     Black,
     White,
 }
-#[derive(Clone)]
+#[derive(Clone, PartialEq, Debug)]
 pub struct Tile {
     pub pos: usize,
     pub piece_on_tile: Piece
 }
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Board {
     pub tiles: Vec<Tile>,
     pub current_player: Color,
 }
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Piece {
     pub color: Color,
     pub piece_type: PieceType,
@@ -142,7 +140,7 @@ impl Board {
             let piece = self.tiles.get(pos);
 
             let res = match piece {
-                Some(p) => true,
+                Some(_) => true,
                 None => false,
             };
             return res;
@@ -154,7 +152,6 @@ impl Board {
     fn get_valid_king_moves(&mut self) -> Vec<Move> {
         return vec![]
     }
-
 
     pub fn get_piece_at_pos(&self, pos: i32) -> Piece {
         let tile = self.tiles.get(pos as usize);
