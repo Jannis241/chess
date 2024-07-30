@@ -33,10 +33,4 @@ pub fn get() -> KeyCode {
             return inp
         }
     }
-
-
-
-
 }
-
-

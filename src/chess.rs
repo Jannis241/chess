@@ -5,8 +5,6 @@ const DOWN: i32 = 8;
 const LEFT: i32 = -1;
 const RIGHT: i32 = 1;
 
-
-
 #[derive(Clone, PartialEq, Debug)]
 pub struct Move {
     pub from: usize,
@@ -266,9 +264,6 @@ impl Piece {
         results
     }
 }
-
-
-
 
 impl Board {
     pub fn new() -> Self {
