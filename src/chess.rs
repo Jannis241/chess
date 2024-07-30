@@ -209,7 +209,7 @@ impl Board {
                 results = self.get_valid_king_moves();
             }
             PieceType::Pawn => {
-                let mut direction =  1; // default ist nach oben
+                let mut direction =  1; // depends on the color
                 
                 if piece.color == Color::Black {
                     direction = -1;
@@ -234,6 +234,10 @@ impl Board {
 
                 // captures 
 
+                // checking:
+                // - if the new position would be in the board
+                // - that its not complety left or right (otherwise it could wrap around)
+                // - check that the target pos has an enemy piece on it and is not empty
                 if self.is_in_board(piece.pos as i32 + UP * direction + LEFT) && !self.is_completly_left(piece.pos){
                     let p = self.get_piece_at_pos(piece.pos as i32 + UP * direction + LEFT);
                     if p.color != piece.color && p.piece_type != PieceType::Empty{                        
@@ -241,6 +245,7 @@ impl Board {
                         results.push(m);
                     } 
                 }
+                // the same thing but right
                 if self.is_in_board(piece.pos as i32 + UP * direction + RIGHT) && !self.is_completly_right(piece.pos){
                     let p = self.get_piece_at_pos(piece.pos as i32 + UP * direction + RIGHT);
                     if p.color != piece.color && p.piece_type != PieceType::Empty{
@@ -288,8 +293,6 @@ impl Board {
         let selected_piece = self.tiles[player_move.from].piece_on_tile.clone();
 
         let legal_moves = self.get_legal_moves_for_piece(&selected_piece, true);
-        println!("your pos: {}", player_move.from);
-        println!("legal moves for your piece: {:?}", legal_moves);
         if legal_moves.contains(&player_move) {
             self.execute_move(&player_move);
             self.change_player();
