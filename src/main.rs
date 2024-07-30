@@ -93,6 +93,9 @@ fn main() {
                             }
                         }
                     }
+                    else {
+                        selected = false;
+                    }
                 }
                 else {
                     // user wants to select a piece

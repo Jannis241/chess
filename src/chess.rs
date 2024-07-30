@@ -139,11 +139,130 @@ impl Piece {
                     }
                 }
             }
+            PieceType::Rook => {
+                let directions = [
+                    (1, 0), (-1, 0), (0, 1), (0, -1)
+                ];
+
+                for &(dx, dy) in &directions {
+                    let mut x = (self.pos % 8) as isize;
+                    let mut y = (self.pos / 8) as isize;
+
+                    loop {
+                        x += dx;
+                        y += dy;
+
+                        if x < 0 || x >= 8 || y < 0 || y >= 8 {
+                            break;
+                        }
+
+                        let new_pos = (y * 8 + x) as usize;
+                        let piece = board.get_piece_at_pos(new_pos as i32);
+
+                        if piece.piece_type == PieceType::Empty {
+                            results.push(Move::new(self.pos, new_pos));
+                        } else {
+                            if piece.color != self.color {
+                                results.push(Move::new(self.pos, new_pos));
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+            PieceType::Bishop => {
+                let directions = [
+                    (1, 1), (1, -1), (-1, 1), (-1, -1)
+                ];
+
+                for &(dx, dy) in &directions {
+                    let mut x = (self.pos % 8) as isize;
+                    let mut y = (self.pos / 8) as isize;
+
+                    loop {
+                        x += dx;
+                        y += dy;
+
+                        if x < 0 || x >= 8 || y < 0 || y >= 8 {
+                            break;
+                        }
+
+                        let new_pos = (y * 8 + x) as usize;
+                        let piece = board.get_piece_at_pos(new_pos as i32);
+
+                        if piece.piece_type == PieceType::Empty {
+                            results.push(Move::new(self.pos, new_pos));
+                        } else {
+                            if piece.color != self.color {
+                                results.push(Move::new(self.pos, new_pos));
+                            }
+                            break;
+                        }
+                    }
+                }
+            }PieceType::Queen => {
+                let directions = [
+                    (1, 0), (-1, 0), (0, 1), (0, -1), // Rook directions
+                    (1, 1), (1, -1), (-1, 1), (-1, -1) // Bishop directions
+                ];
+
+                for &(dx, dy) in &directions {
+                    let mut x = (self.pos % 8) as isize;
+                    let mut y = (self.pos / 8) as isize;
+
+                    loop {
+                        x += dx;
+                        y += dy;
+
+                        if x < 0 || x >= 8 || y < 0 || y >= 8 {
+                            break;
+                        }
+
+                        let new_pos = (y * 8 + x) as usize;
+                        let piece = board.get_piece_at_pos(new_pos as i32);
+
+                        if piece.piece_type == PieceType::Empty {
+                            results.push(Move::new(self.pos, new_pos));
+                        } else {
+                            if piece.color != self.color {
+                                results.push(Move::new(self.pos, new_pos));
+                            }
+                            break;
+                        }
+                    }
+                }
+            }PieceType::King => {
+                let directions = [
+                    (1, 0), (-1, 0), (0, 1), (0, -1), // Horizontal & Vertical
+                    (1, 1), (1, -1), (-1, 1), (-1, -1) // Diagonal
+                ];
+
+                for &(dx, dy) in &directions {
+                    let new_x = (self.pos % 8) as isize + dx;
+                    let new_y = (self.pos / 8) as isize + dy;
+
+                    if new_x >= 0 && new_x < 8 && new_y >= 0 && new_y < 8 {
+                        let new_pos = (new_y * 8 + new_x) as usize;
+                        let piece = board.get_piece_at_pos(new_pos as i32);
+
+                        if piece.piece_type == PieceType::Empty || piece.color != self.color {
+                            results.push(Move::new(self.pos, new_pos));
+                        }
+                    }
+                }
+
+                
+
+
+            }
             PieceType::Empty => {
                 return vec![]
             } 
-            _ => {todo!("not implemented yet")}
         }
+
+        // die base moves sind jetzt da
+        // Todo: pins, check (schach) en passent, promotions checken, castle
+
         results
     }
 }
