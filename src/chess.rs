@@ -139,8 +139,10 @@ impl Piece {
                     }
                 }
             }
-        
-            _ => {}
+            PieceType::Empty => {
+                return vec![]
+            } 
+            _ => {todo!("not implemented yet")}
         }
         results
     }
@@ -231,7 +233,6 @@ impl Board {
             return t.piece_on_tile.clone();
         }
         else {
-            println!("Error at get piece at pos, tile is out of bounds. Position: {}", pos);
             panic!();
         }
     }

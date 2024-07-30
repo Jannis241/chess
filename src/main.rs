@@ -113,9 +113,5 @@ fn main() {
             // cant be here because the input function filters everything exepect the valid inputs
             _ => panic!("shouldnt be here, something is wrong the the get input function")
         }
-
-        
-
-
     }
 }

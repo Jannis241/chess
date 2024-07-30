@@ -1,9 +1,11 @@
 use crate::*;
 use std::clone::Clone;
 
+use std::io::Write; // Add this at the top
+
 fn draw_board(board: &Board, cursor_pos: &usize, legal_moves: &Vec<usize>, selected_piece: Option<usize>) {
     let mut board_representation = vec![vec![' '; 8]; 8];
-    
+
     // Populate the board representation with pieces
     for tile in &board.tiles {
         let piece_char = match (tile.piece_on_tile.piece_type.clone(), tile.piece_on_tile.color.clone()) {
@@ -33,15 +35,16 @@ fn draw_board(board: &Board, cursor_pos: &usize, legal_moves: &Vec<usize>, selec
     let selected_piece_color = "\x1B[41m"; // red background for selected piece
 
     // Print the board row by row
-    let mut i = 0;
-    for row in board_representation.iter() {
-        for &cell in row.iter() {
+    for row_index in 0..8 {
+        for col_index in 0..8 {
+            let pos = row_index * 8 + col_index; // Compute the board position
+            let cell = board_representation[row_index][col_index];
 
-            if Some(i) == selected_piece {
+            if Some(pos) == selected_piece {
                 print!("{}{}{} ", selected_piece_color, cell, reset_color);
-            } else if &i == cursor_pos {
+            } else if &pos == cursor_pos {
                 print!("{}{}{} ", cursor_color, cell, reset_color);
-            } else if legal_moves.contains(&i) {
+            } else if legal_moves.contains(&pos) {
                 print!("{}{}{} ", legal_move_color, cell, reset_color);
             } else {
                 match cell {
@@ -50,20 +53,24 @@ fn draw_board(board: &Board, cursor_pos: &usize, legal_moves: &Vec<usize>, selec
                     _ => print!("{}{}{} ", reset_color, cell, reset_color),
                 }
             }
-            i += 1;
         }
-        println!();
+        println!(); // Print a new line after each row
     }
+    std::io::stdout().flush().unwrap(); // Ensure all output is flushed
+    println!("draw board ist zu ende");
 }
+
 
 fn clear_terminal() {
     // ANSI escape code to clear the terminal
-    //print!("\x1B[2J\x1B[H");
+    print!("\x1B[2J\x1B[H");
+    println!("clear terminal ist zu ende");
 }
 
 fn print_navigation() {
     // Placeholder function to print navigation instructions
     println!("Use arrow keys to move the cursor, press Enter to select a piece.");
+    println!("navigation got printend");
 }
 
 fn print_current_player(current_player: &Color) {
@@ -83,4 +90,5 @@ pub fn draw(board: &Board, cursor_pos: &usize, current_player: &Color, legal_mov
     print_navigation();
     print_current_player(current_player);
     draw_board(board, cursor_pos, legal_moves, selected_piece);
+    println!("hier ist das ende des prints");
 }
