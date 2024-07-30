@@ -25,7 +25,7 @@ fn main() {
         // draw legal moves
         if selected {
             let selected_piece = &board.get_piece_at_pos(from as i32);
-            let legal_moves: Vec<usize> = board.get_legal_moves_for_piece(selected_piece, true).iter().map(|m| m.to).collect();        
+            let legal_moves: Vec<usize> = selected_piece.get_legal_moves(&board, true).iter().map(|m| m.to).collect();        
             
             // if its their own piece draw legal moves
             if selected_piece.color == board.current_player{
@@ -41,7 +41,7 @@ fn main() {
         // navigation
         match inp {
             KeyCode::Down => {
-                if cursor_pos + 8 <= 64 {
+                if cursor_pos + 8 <= 63 {
                     cursor_pos += 8;
                 }
             }
@@ -82,7 +82,7 @@ fn main() {
 
                             // if the user just switched from one piece to another update the start position
                             // from the move
-                            if selected_piece.color == board.current_player{
+                            if selected_piece.color == board.current_player && selected_piece.piece_type != PieceType::Empty{
                                 from = cursor_pos;
                                 selected = true;
                             } 

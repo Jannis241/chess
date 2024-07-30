@@ -6,6 +6,7 @@ const LEFT: i32 = -1;
 const RIGHT: i32 = 1;
 
 
+
 #[derive(Clone, PartialEq, Debug)]
 pub struct Move {
     pub from: usize,
@@ -71,7 +72,82 @@ impl Piece {
             move_count: 0
         }
     }
+    pub fn get_legal_moves(&self, board: &Board, check_if_own_piece: bool) -> Vec<Move> {
+        if check_if_own_piece && self.color != board.current_player {
+            return vec![]
+        }
+        let mut results = Vec::new();
+        match self.piece_type {
+            PieceType::Pawn => {
+                let direction = if self.color == Color::White { 1 } else { -1 };
+                let one_step = UP * direction;
+                let two_steps = one_step * 2;
+
+                // Check if 1 step up is empty
+                let one_step_pos = self.pos as i32 + one_step;
+                if board.is_in_board(one_step_pos) {
+                    if board.get_piece_at_pos(one_step_pos).piece_type == PieceType::Empty {
+                        results.push(Move::new(self.pos, one_step_pos as usize));
+                        
+                        // Check for 2 steps up (only if at initial position)
+                        if self.move_count == 0 {
+                            let two_steps_pos = self.pos as i32 + two_steps;
+                            if board.is_in_board(two_steps_pos) {
+                                if board.get_piece_at_pos(two_steps_pos).piece_type == PieceType::Empty {
+                                    results.push(Move::new(self.pos, two_steps_pos as usize));
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Captures
+                let left_capture_pos = self.pos as i32 + one_step + LEFT;
+                let right_capture_pos = self.pos as i32 + one_step + RIGHT;
+
+                if board.is_in_board(left_capture_pos) && !board.is_completly_left(self.pos) {
+                    let p = board.get_piece_at_pos(left_capture_pos);
+                    if p.color != self.color && p.piece_type != PieceType::Empty {
+                        results.push(Move::new(self.pos, left_capture_pos as usize));
+                    }
+                }
+
+                if board.is_in_board(right_capture_pos) && !board.is_completly_right(self.pos) {
+                    let p = board.get_piece_at_pos(right_capture_pos);
+                    if p.color != self.color && p.piece_type != PieceType::Empty {
+                        results.push(Move::new(self.pos, right_capture_pos as usize));
+                    }
+                }
+            }
+            PieceType::Knight => {
+                let directions = [
+                    (2, 1), (2, -1), (-2, 1), (-2, -1),
+                    (1, 2), (1, -2), (-1, 2), (-1, -2)
+                ];
+
+                for &(dir_x, dir_y) in &directions {
+                    let new_x = (self.pos % 8) as isize + dir_x;
+                    let new_y = (self.pos / 8) as isize + dir_y;
+
+                    if new_x >= 0 && new_x < 8 && new_y >= 0 && new_y < 8 {
+                        let new_pos = (new_y * 8 + new_x) as usize;
+                        let piece = board.get_piece_at_pos(new_pos as i32);
+
+                        if piece.piece_type == PieceType::Empty || piece.color != self.color {
+                            results.push(Move::new(self.pos, new_pos));
+                        }
+                    }
+                }
+            }
+        
+            _ => {}
+        }
+        results
+    }
 }
+
+
+
 
 impl Board {
     pub fn new() -> Self {
@@ -148,11 +224,6 @@ impl Board {
         false
     }
 
-
-    fn get_valid_king_moves(&mut self) -> Vec<Move> {
-        return vec![]
-    }
-
     pub fn get_piece_at_pos(&self, pos: i32) -> Piece {
         let tile = self.tiles.get(pos as usize);
 
@@ -175,88 +246,6 @@ impl Board {
 
     fn is_completly_right(&self, pos: usize) -> bool {
         return pos % 8 == 7;
-    }
-
-
-    pub fn get_legal_moves_for_piece(&mut self, piece: &Piece, check_if_own_piece: bool) -> Vec<Move> {
-        if check_if_own_piece && piece.color != self.current_player {
-            return vec![]
-        }
-        
-        let mut results: Vec<Move> = Vec::new();
-
-
-        // ! AUFPASSEN WENN MAN GANZ LINKS ODER RECHTS IST DASS MAN NICHT OVERFLOWT, AM BESTEN
-        // MIT LINKEM UND RECHTEN RAND CHECKEN
-
-        match piece.piece_type {
-            PieceType::Rook => {
-
-            }
-            PieceType::Knight => {
-
-            }
-            PieceType::Bishop => {
-
-            }
-            PieceType::Queen => {
-
-            }
-            PieceType::King => {
-                results = self.get_valid_king_moves();
-            }
-            PieceType::Pawn => {
-                let mut direction =  1; // depends on the color
-                
-                if piece.color == Color::Black {
-                    direction = -1;
-                }
-
-                // check if 1 up is empty
-                if self.is_in_board(piece.pos as i32 + UP * direction) {
-                    if self.get_piece_at_pos(piece.pos as i32 + UP * direction).piece_type == PieceType::Empty{
-                        let m = Move::new(piece.pos, self.add_offset_to_position(piece.pos, UP * direction));
-                        results.push(m);
-                    }
-                }
-
-                // check for 2 up move
-                if piece.move_count == 0 {
-                    if self.get_piece_at_pos(piece.pos as i32 + UP * direction + UP * direction).piece_type == PieceType::Empty{
-                        let m = Move::new(piece.pos, self.add_offset_to_position(piece.pos, UP * direction + UP * direction));
-                        results.push(m);
-                    } 
-                }
-
-
-                // captures 
-
-                // checking:
-                // - if the new position would be in the board
-                // - that its not complety left or right (otherwise it could wrap around)
-                // - check that the target pos has an enemy piece on it and is not empty
-                if self.is_in_board(piece.pos as i32 + UP * direction + LEFT) && !self.is_completly_left(piece.pos){
-                    let p = self.get_piece_at_pos(piece.pos as i32 + UP * direction + LEFT);
-                    if p.color != piece.color && p.piece_type != PieceType::Empty{                        
-                        let m = Move::new(piece.pos, self.add_offset_to_position(piece.pos, UP * direction + LEFT));
-                        results.push(m);
-                    } 
-                }
-                // the same thing but right
-                if self.is_in_board(piece.pos as i32 + UP * direction + RIGHT) && !self.is_completly_right(piece.pos){
-                    let p = self.get_piece_at_pos(piece.pos as i32 + UP * direction + RIGHT);
-                    if p.color != piece.color && p.piece_type != PieceType::Empty{
-                        let m = Move::new(piece.pos, self.add_offset_to_position(piece.pos, UP * direction + RIGHT));
-                        results.push(m);
-                    } 
-                }
-            }
-            PieceType::Empty =>{
-                return vec![];
-            }
-        }
-
-        return results;
     }
 
     pub fn change_player(&mut self){
@@ -289,7 +278,7 @@ impl Board {
     pub fn make_move(&mut self, player_move: Move) -> bool { 
         let selected_piece = self.tiles[player_move.from].piece_on_tile.clone();
 
-        let legal_moves = self.get_legal_moves_for_piece(&selected_piece, true);
+        let legal_moves = selected_piece.get_legal_moves(self, true);
         if legal_moves.contains(&player_move) {
             self.execute_move(&player_move);
             self.change_player();

@@ -3,7 +3,7 @@ use std::clone::Clone;
 
 fn draw_board(board: &Board, cursor_pos: &usize, legal_moves: &Vec<usize>, selected_piece: Option<usize>) {
     let mut board_representation = vec![vec![' '; 8]; 8];
-
+    
     // Populate the board representation with pieces
     for tile in &board.tiles {
         let piece_char = match (tile.piece_on_tile.piece_type.clone(), tile.piece_on_tile.color.clone()) {
@@ -36,6 +36,7 @@ fn draw_board(board: &Board, cursor_pos: &usize, legal_moves: &Vec<usize>, selec
     let mut i = 0;
     for row in board_representation.iter() {
         for &cell in row.iter() {
+
             if Some(i) == selected_piece {
                 print!("{}{}{} ", selected_piece_color, cell, reset_color);
             } else if &i == cursor_pos {
@@ -57,7 +58,7 @@ fn draw_board(board: &Board, cursor_pos: &usize, legal_moves: &Vec<usize>, selec
 
 fn clear_terminal() {
     // ANSI escape code to clear the terminal
-    // print!("\x1B[2J\x1B[H");
+    //print!("\x1B[2J\x1B[H");
 }
 
 fn print_navigation() {
@@ -71,6 +72,7 @@ fn print_current_player(current_player: &Color) {
         Color::White => "\x1B[97mWhite\x1B[0m", // bright white
         Color::Black => "\x1B[90mBlack\x1B[0m", // bright black (dark gray)
     };
+    
     println!();
     println!("Current player: {}", player_color);
     println!();
