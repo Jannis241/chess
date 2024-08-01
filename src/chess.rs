@@ -74,6 +74,7 @@ impl Piece {
         if check_if_own_piece && self.color != board.current_player {
             return vec![]
         }
+        
         let mut results = Vec::new();
         match self.piece_type {
             PieceType::Pawn => {
