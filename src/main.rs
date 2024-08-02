@@ -2,7 +2,6 @@ use crossterm::event::*;
 use crossterm::terminal::*;
 use crossterm::event;
 
-use std::collections::HashMap;
 use std::process::exit;
 
 pub use chess::*;
@@ -15,10 +14,10 @@ pub mod input;
 
 fn main() {
     let mut board = Board::new();
+    board.setup("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 
     let mut cursor_pos = 28;
     
-
     let mut from = 0;
     let mut selected = false;
     loop {
@@ -31,7 +30,7 @@ fn main() {
         // draw legal moves
         if selected {
             let selected_piece = &board.get_piece_at_pos(from as i32);
-            let legal_moves: Vec<usize> = selected_piece.get_legal_moves(&board, true, true ).iter().map(|m| m.to).collect();        
+            let legal_moves: Vec<usize> = selected_piece.get_legal_moves(&mut board, true, true ).iter().map(|m| m.to).collect();        
             
             // if its their own piece draw legal moves
             if selected_piece.color == board.current_player{

@@ -23,6 +23,10 @@ pub struct Tile {
 pub struct Board {
     pub tiles: Vec<Tile>,
     pub current_player: Color,
+    pub white_castle_queen_side: bool,
+    pub white_castle_king_side: bool,
+    pub black_castle_queen_side: bool,
+    pub black_castle_king_side: bool,
 }
 #[derive(Clone, Debug, PartialEq)]
 pub struct Piece {
@@ -70,7 +74,7 @@ impl Piece {
         }
     }
 
-    pub fn get_legal_moves(&self, board: &Board, check_if_own_piece: bool, checks: bool) -> Vec<Move> {
+    pub fn get_legal_moves(&self, board: &mut Board, check_if_own_piece: bool, checks: bool) -> Vec<Move> {
         if check_if_own_piece && self.color != board.current_player {
             return vec![]
         }
@@ -250,6 +254,29 @@ impl Piece {
                     }
                 }
 
+                board.update_castle_options();
+
+
+                match self.color {
+                    Color::Black => {
+                        if board.black_castle_king_side {
+                            results.push(Move::new(self.pos, self.pos + 2));
+                        }
+                        if board.black_castle_queen_side {
+                            results.push(Move::new(self.pos, self.pos - 3));
+                        }
+                    }
+                    Color::White => {
+                        if board.white_castle_king_side {
+                            results.push(Move::new(self.pos, self.pos + 2));
+
+                        }
+                        if board.white_castle_queen_side {
+                            results.push(Move::new(self.pos, self.pos - 3));
+ 
+                        }
+                    }
+                }
                 
 
 
@@ -276,15 +303,76 @@ impl Piece {
 impl Board {
 
     pub fn new() -> Self {
-        let mut board = Board {
+        Board {
             tiles: Vec::new(),
             current_player: Color::White,
+            black_castle_king_side: false,
+            white_castle_king_side: false,
+            black_castle_queen_side: false,
+            white_castle_queen_side: false,
 
-        };
-        board.setup();
-
-        return board;
+        }
     }    
+
+    fn castle_check(&self, king_pos: usize, rook_pos: usize) -> bool {        
+        if self.tiles[king_pos].piece_on_tile.move_count == 0 && self.tiles[rook_pos].piece_on_tile.move_count == 0 {
+            let mut pos: i32 = king_pos as i32 + 1;
+            while pos != rook_pos as i32 {
+                if self.tiles[pos as usize].piece_on_tile.piece_type != PieceType::Empty {
+                    return false;
+                }
+                pos += 1;
+            }
+            return true;
+        }
+
+        false
+    }
+
+    fn update_castle_options(&mut self) {
+        
+        // white king side
+        let king_pos = self.get_king_pos(Color::White).piece_on_tile.pos;
+        
+        if self.castle_check(king_pos, king_pos + 3) {
+            self.white_castle_king_side = true;
+        }
+        else {
+            self.white_castle_king_side = false;
+        }
+
+
+        // white queen side
+        let king_pos = self.get_king_pos(Color::White).piece_on_tile.pos;
+        
+        if self.castle_check(king_pos, king_pos - 4) {
+            self.white_castle_queen_side = true;
+        }
+        else {
+            self.white_castle_queen_side = false;
+        }
+
+
+        // black queen side
+        let king_pos = self.get_king_pos(Color::Black).piece_on_tile.pos;
+        
+        if self.castle_check(king_pos, king_pos - 4) {
+            self.black_castle_queen_side = true;
+        }
+        else {
+            self.black_castle_queen_side = false;
+        }
+
+        // black king side
+        let king_pos = self.get_king_pos(Color::Black).piece_on_tile.pos;
+        
+        if self.castle_check(king_pos, king_pos + 3) {
+            self.black_castle_king_side = true;
+        }
+        else {
+            self.black_castle_king_side = false;
+        }
+    }
     
     // color ist dann von dem spieler der den zug machen möchte
     fn move_causes_check(&self, color: Color, m: &Move) -> bool {
@@ -308,9 +396,9 @@ impl Board {
         false
     }
     
-    pub fn get_all_legal_moves(&self, player_color: Color, check: bool) -> Vec<Move> {
+    pub fn get_all_legal_moves(&mut self, player_color: Color, check: bool) -> Vec<Move> {
         let mut result = Vec::new();
-        for tile in &self.tiles {
+        for tile in self.tiles.clone() {
             let piece = &tile.piece_on_tile;
             if piece.color == player_color {
                 let moves = piece.get_legal_moves(self, false, check);
@@ -330,57 +418,57 @@ impl Board {
         panic!("king not found");
     }
 
-    fn create_default_chess_position(&self) -> HashMap<usize, Piece> {
-
-        let mut position_map: HashMap<usize, Piece> = HashMap::new();
+        pub fn setup(&mut self, fen: &str) {
+            // Split the FEN string into its components
+            let parts: Vec<&str> = fen.split_whitespace().collect();
+            
+            // FEN parts
+            let pieces_part = parts[0];
+            let active_color_part = parts[1];
+            let castling_part = parts[2];
     
-        // White pieces
-        position_map.insert(0, Piece::new(Color::Black, PieceType::Rook, 0));
-        position_map.insert(1, Piece::new(Color::Black, PieceType::Knight, 1));
-        position_map.insert(2, Piece::new(Color::Black, PieceType::Bishop, 2));
-        position_map.insert(3, Piece::new(Color::Black, PieceType::Queen, 3));
-        position_map.insert(4, Piece::new(Color::Black, PieceType::King, 4));
-        position_map.insert(5, Piece::new(Color::Black, PieceType::Bishop, 5));
-        position_map.insert(6, Piece::new(Color::Black, PieceType::Knight, 6));
-        position_map.insert(7, Piece::new(Color::Black, PieceType::Rook, 7));
+            // Initialize board tiles with empty pieces
+            self.tiles = (0..64).map(|i| Tile::new(i, Piece::new(Color::White, PieceType::Empty, i))).collect();
     
-        for i in 8..16 {
-            position_map.insert(i, Piece::new(Color::Black, PieceType::Pawn, i));
+            // Map piece characters to PieceType and Color
+            let piece_map = |c: char, pos: usize| -> Piece {
+                let color = if c.is_uppercase() { Color::White } else { Color::Black };
+                let piece_type = match c.to_ascii_lowercase() {
+                    'p' => PieceType::Pawn,
+                    'r' => PieceType::Rook,
+                    'n' => PieceType::Knight,
+                    'b' => PieceType::Bishop,
+                    'q' => PieceType::Queen,
+                    'k' => PieceType::King,
+                    _ => PieceType::Empty,
+                };
+                Piece::new(color, piece_type, pos)
+            };
+    
+            // Set up pieces on the board
+            let mut pos = 0;
+            for c in pieces_part.chars() {
+                match c {
+                    '/' => continue,
+                    '1'..='8' => pos += c.to_digit(10).unwrap() as usize,
+                    _ => {
+                        self.tiles[pos].piece_on_tile = piece_map(c, pos);
+                        pos += 1;
+                    }
+                }
+            }
+    
+            // Set the active color
+            self.current_player = if active_color_part == "w" { Color::White } else { Color::Black };
+    
+            // Set castling rights
+            self.white_castle_king_side = castling_part.contains('K');
+            self.white_castle_queen_side = castling_part.contains('Q');
+            self.black_castle_king_side = castling_part.contains('k');
+            self.black_castle_queen_side = castling_part.contains('q');
         }
     
-        // Black pieces
-        position_map.insert(56, Piece::new(Color::White, PieceType::Rook, 56));
-        position_map.insert(57, Piece::new(Color::White, PieceType::Knight, 57));
-        position_map.insert(58, Piece::new(Color::White, PieceType::Bishop, 58));
-        position_map.insert(59, Piece::new(Color::White, PieceType::Queen, 59));
-        position_map.insert(60, Piece::new(Color::White, PieceType::King, 60));
-        position_map.insert(61, Piece::new(Color::White, PieceType::Bishop, 61));
-        position_map.insert(62, Piece::new(Color::White, PieceType::Knight, 62));
-        position_map.insert(63, Piece::new(Color::White, PieceType::Rook, 63));
     
-        for i in 48..56 {
-            position_map.insert(i, Piece::new(Color::White, PieceType::Pawn, i));
-        }
-    
-        // Empty pieces for the rest of the board
-        for i in 16..48 {
-            position_map.insert(i, Piece::new(Color::White, PieceType::Empty, i)); // or any other default for empty tiles
-        }
-    
-        position_map
-    }
-    
-    fn setup(&mut self) {
-        let initial_pos = self.create_default_chess_position();
-
-        for i in 0..64 {
-            let piece = &initial_pos[&i];
-
-            let tile = Tile::new(i, piece.clone());
-            self.tiles.push(tile);
-        }
-
-    }
     fn is_in_board(&self, pos: i32) -> bool {
         if pos >= 0 {
             let pos = pos as usize;
