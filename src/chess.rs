@@ -120,6 +120,8 @@ impl Piece {
                         results.push(Move::new(self.pos, right_capture_pos as usize));
                     }
                 }
+
+                
             }
             PieceType::Knight => {
                 let directions = [
@@ -314,7 +316,7 @@ impl Board {
         }
     }    
 
-    fn castle_check(&self, king_pos: i32, rook_pos: i32) -> bool { 
+    fn castle_check(&mut self, king_pos: i32, rook_pos: i32) -> bool { 
         let dir: i32;
 
         if king_pos > rook_pos {
@@ -332,6 +334,19 @@ impl Board {
                 while pos != rook_pos as i32 {
                     if self.tiles[pos as usize].piece_on_tile.piece_type != PieceType::Empty {
                         return false;
+                    }
+                    let opp_col = match self.current_player {
+                        Color::Black => Color::White,
+                        Color::White => Color::Black,
+                    };
+                    let opp_move = self.get_all_legal_moves(opp_col, false);
+                    for m in opp_move {
+                        if m.to == pos as usize{
+                            return false;
+                        }
+                        if m.to == king_pos {
+                            return false;
+                        }
                     }
                     pos += 1 * dir;
                 }        
