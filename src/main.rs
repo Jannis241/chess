@@ -22,10 +22,16 @@ fn main() {
     let mut from = 0;
     let mut selected = false;
     loop {
+        let moves = board.get_all_legal_moves(board.current_player.clone(), true);
+        if moves.len() == 0 {
+            board.change_player();
+            visuals::draw_winner(&board, board.current_player.clone());
+            exit(0)
+        }
         // draw legal moves
         if selected {
             let selected_piece = &board.get_piece_at_pos(from as i32);
-            let legal_moves: Vec<usize> = selected_piece.get_legal_moves(&board, true).iter().map(|m| m.to).collect();        
+            let legal_moves: Vec<usize> = selected_piece.get_legal_moves(&board, true, true ).iter().map(|m| m.to).collect();        
             
             // if its their own piece draw legal moves
             if selected_piece.color == board.current_player{

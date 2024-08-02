@@ -57,7 +57,7 @@ fn draw_board(board: &Board, cursor_pos: &usize, legal_moves: &Vec<usize>, selec
 
 fn clear_terminal() {
     // ANSI escape code to clear the terminal
-     print!("\x1B[2J\x1B[H");
+    print!("\x1B[2J\x1B[H");
 }
 
 fn print_navigation() {
@@ -73,6 +73,23 @@ fn print_current_player(current_player: &Color) {
     };
     println!();
     println!("Current player: {}", player_color);
+    println!();
+}
+
+pub fn draw_winner(board: &Board, winner: Color) {
+    // Clear the terminal
+    clear_terminal();
+    
+    // Draw the final board state
+    draw_board(board, &0, &Vec::new(), None);
+    
+    // Display the winner message
+    let winner_message = match winner {
+        Color::White => "\x1B[97mWhite wins!\x1B[0m", // bright white
+        Color::Black => "\x1B[90mBlack wins!\x1B[0m", // bright black (dark gray)
+    };
+    println!();
+    println!("{}", winner_message);
     println!();
 }
 

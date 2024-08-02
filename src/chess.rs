@@ -70,7 +70,8 @@ impl Piece {
             move_count: 0
         }
     }
-    pub fn get_legal_moves(&self, board: &Board, check_if_own_piece: bool) -> Vec<Move> {
+
+    pub fn get_legal_moves(&self, board: &Board, check_if_own_piece: bool, checks: bool) -> Vec<Move> {
         if check_if_own_piece && self.color != board.current_player {
             return vec![]
         }
@@ -259,7 +260,14 @@ impl Piece {
             } 
         }
 
-        // die base moves sind jetzt da
+
+
+        if checks {
+            results = results
+                .into_iter()
+                .filter(|m| !board.move_causes_check(self.color.clone(), m))
+                .collect();
+        } 
         // Todo: pins, check (schach) en passent, promotions checken, castle
 
         results
@@ -267,15 +275,62 @@ impl Piece {
 }
 
 impl Board {
+
     pub fn new() -> Self {
         let mut board = Board {
             tiles: Vec::new(),
             current_player: Color::White,
+
         };
         board.setup();
 
         return board;
+    }    
+    
+    // color ist dann von dem spieler der den zug machen möchte
+    fn move_causes_check(&self, color: Color, m: &Move) -> bool {
+
+        let mut simulation = self.clone();
+        simulation.execute_move(m);
+        let opponent_color = match color {
+            Color::White => Color::Black,
+            Color::Black => Color::White,
+        };
+        
+        let king_pos = simulation.get_king_pos(color.clone()).pos;
+
+        let opponent_moves = simulation.get_all_legal_moves(opponent_color, false);
+        
+        for opponent_move in opponent_moves {
+            if opponent_move.to == king_pos {
+                return true;
+            }
+        }
+        false
     }
+    
+    pub fn get_all_legal_moves(&self, player_color: Color, check: bool) -> Vec<Move> {
+        let mut result = Vec::new();
+        for tile in &self.tiles {
+            let piece = &tile.piece_on_tile;
+            if piece.color == player_color {
+                let moves = piece.get_legal_moves(self, false, check);
+                result.extend(moves);
+            }
+        }
+        result
+    }
+    
+
+    fn get_king_pos(&self, color: Color) -> Tile {
+        for tile in self.tiles.clone() {
+            if tile.piece_on_tile.piece_type == PieceType::King && tile.piece_on_tile.color == color {
+                return tile
+            }
+        }
+        panic!("king not found");
+    }
+
     fn create_default_chess_position(&self) -> HashMap<usize, Piece> {
 
         let mut position_map: HashMap<usize, Piece> = HashMap::new();
@@ -352,10 +407,6 @@ impl Board {
         }
     }
 
-    fn add_offset_to_position(&self, position: usize, offset: i32) -> usize {
-        return (position as i32 + offset) as usize
-    }
-
     fn is_completly_left(&self, pos: usize) -> bool {
         return pos % 8 == 0;
     }
@@ -371,22 +422,17 @@ impl Board {
             self.current_player = Color::White;
         }
     }
+
     fn execute_move(&mut self, player_move: &Move) {
-        // Get the source and target positions
         let from_pos = player_move.from;
         let to_pos = player_move.to;
-
-        // Clone the piece at the source position
+    
         let mut piece = self.tiles[from_pos].piece_on_tile.clone();
-
-        // Update the piece's position
         piece.pos = to_pos;
         piece.move_count += 1;
-
-        // Place the piece on the target tile
+    
         self.tiles[to_pos].piece_on_tile = piece;
-
-        // Set the source tile to be empty
+    
         self.tiles[from_pos].piece_on_tile = Piece::new(Color::White, PieceType::Empty, from_pos);
     }
     
@@ -394,7 +440,7 @@ impl Board {
     pub fn make_move(&mut self, player_move: Move) -> bool { 
         let selected_piece = self.tiles[player_move.from].piece_on_tile.clone();
 
-        let legal_moves = selected_piece.get_legal_moves(self, true);
+        let legal_moves = selected_piece.get_legal_moves(self, true, true);
         if legal_moves.contains(&player_move) {
             self.execute_move(&player_move);
             self.change_player();
@@ -403,6 +449,4 @@ impl Board {
 
         return false
     }
-
-
 }
