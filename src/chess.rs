@@ -1,3 +1,6 @@
+// Todo: Promotions, En passant, visuals verbessern (bei schach matt so eine linie anzeigen von wo, gewinner besser, current player besser ,figuren)
+
+
 const UP: i32 = -8;
 const LEFT: i32 = -1;
 const RIGHT: i32 = 1;
@@ -296,7 +299,6 @@ impl Piece {
                 .filter(|m| !board.move_causes_check(self.color.clone(), m))
                 .collect();
         } 
-        // Todo: pins, check (schach) en passent, promotions checken, castle
 
         results
     }
