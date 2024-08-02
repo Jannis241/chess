@@ -1,7 +1,6 @@
 use crate::*;
 
 const UP: i32 = -8;
-const DOWN: i32 = 8;
 const LEFT: i32 = -1;
 const RIGHT: i32 = 1;
 
