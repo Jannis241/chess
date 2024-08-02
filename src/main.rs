@@ -14,7 +14,7 @@ pub mod input;
 
 fn main() {
     let mut board = Board::new();
-    board.setup("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    board.setup("r3k2r/pppppppp/n7/8/8/7N/PPPPPPPP/R3K2R w KQkq - 0 1");
 
     let mut cursor_pos = 28;
     

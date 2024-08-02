@@ -1,4 +1,3 @@
-use crate::*;
 
 const UP: i32 = -8;
 const LEFT: i32 = -1;
@@ -253,8 +252,10 @@ impl Piece {
                         }
                     }
                 }
+                if checks {
 
                 board.update_castle_options();
+                }
 
 
                 match self.color {
@@ -263,7 +264,7 @@ impl Piece {
                             results.push(Move::new(self.pos, self.pos + 2));
                         }
                         if board.black_castle_queen_side {
-                            results.push(Move::new(self.pos, self.pos - 3));
+                            results.push(Move::new(self.pos, self.pos - 2));
                         }
                     }
                     Color::White => {
@@ -272,7 +273,7 @@ impl Piece {
 
                         }
                         if board.white_castle_queen_side {
-                            results.push(Move::new(self.pos, self.pos - 3));
+                            results.push(Move::new(self.pos, self.pos - 2));
  
                         }
                     }
@@ -310,29 +311,40 @@ impl Board {
             white_castle_king_side: false,
             black_castle_queen_side: false,
             white_castle_queen_side: false,
-
         }
     }    
 
-    fn castle_check(&self, king_pos: usize, rook_pos: usize) -> bool {        
-        if self.tiles[king_pos].piece_on_tile.move_count == 0 && self.tiles[rook_pos].piece_on_tile.move_count == 0 {
-            let mut pos: i32 = king_pos as i32 + 1;
-            while pos != rook_pos as i32 {
-                if self.tiles[pos as usize].piece_on_tile.piece_type != PieceType::Empty {
-                    return false;
-                }
-                pos += 1;
-            }
-            return true;
+    fn castle_check(&self, king_pos: i32, rook_pos: i32) -> bool { 
+        let dir: i32;
+
+        if king_pos > rook_pos {
+            dir = -1;        
+        }
+        else {
+            dir = 1;
         }
 
+        if self.is_in_board(king_pos) && self.is_in_board(rook_pos){
+            let king_pos = king_pos as usize;
+            let rook_pos = rook_pos as usize;
+            if self.tiles[king_pos].piece_on_tile.move_count == 0 && self.tiles[rook_pos].piece_on_tile.move_count == 0 {
+                let mut pos: i32 = king_pos as i32 + 1 * dir;
+                while pos != rook_pos as i32 {
+                    if self.tiles[pos as usize].piece_on_tile.piece_type != PieceType::Empty {
+                        return false;
+                    }
+                    pos += 1 * dir;
+                }        
+                return true;
+            }
+        }
         false
     }
 
     fn update_castle_options(&mut self) {
         
         // white king side
-        let king_pos = self.get_king_pos(Color::White).piece_on_tile.pos;
+        let king_pos = self.get_king_pos(Color::White).piece_on_tile.pos as i32;
         
         if self.castle_check(king_pos, king_pos + 3) {
             self.white_castle_king_side = true;
@@ -343,7 +355,7 @@ impl Board {
 
 
         // white queen side
-        let king_pos = self.get_king_pos(Color::White).piece_on_tile.pos;
+        let king_pos = self.get_king_pos(Color::White).piece_on_tile.pos as i32;
         
         if self.castle_check(king_pos, king_pos - 4) {
             self.white_castle_queen_side = true;
@@ -354,7 +366,7 @@ impl Board {
 
 
         // black queen side
-        let king_pos = self.get_king_pos(Color::Black).piece_on_tile.pos;
+        let king_pos = self.get_king_pos(Color::Black).piece_on_tile.pos as i32;
         
         if self.castle_check(king_pos, king_pos - 4) {
             self.black_castle_queen_side = true;
@@ -364,7 +376,7 @@ impl Board {
         }
 
         // black king side
-        let king_pos = self.get_king_pos(Color::Black).piece_on_tile.pos;
+        let king_pos = self.get_king_pos(Color::Black).piece_on_tile.pos as i32;
         
         if self.castle_check(king_pos, king_pos + 3) {
             self.black_castle_king_side = true;
@@ -511,18 +523,26 @@ impl Board {
     }
 
     fn execute_move(&mut self, player_move: &Move) {
-        let from_pos = player_move.from;
-        let to_pos = player_move.to;
-    
-        let mut piece = self.tiles[from_pos].piece_on_tile.clone();
-        piece.pos = to_pos;
-        piece.move_count += 1;
-    
-        self.tiles[to_pos].piece_on_tile = piece;
-    
-        self.tiles[from_pos].piece_on_tile = Piece::new(Color::White, PieceType::Empty, from_pos);
+        if self.tiles[player_move.from].piece_on_tile.piece_type == PieceType::King {
+            if player_move.from + 2 == player_move.to {
+                let rook_pos = player_move.from + 3;
+                self.execute_move(&Move::new(rook_pos, rook_pos - 2))
+            }
+            else if player_move.from - 2 == player_move.to {
+                let rook_pos = player_move.from - 4;
+                self.execute_move(&Move::new(rook_pos, rook_pos + 3))
+            }
+       }
+       let from_pos = player_move.from;
+       let to_pos = player_move.to;
+   
+       let mut piece = self.tiles[from_pos].piece_on_tile.clone();
+       piece.pos = to_pos;
+       piece.move_count += 1;
+       self.tiles[to_pos].piece_on_tile = piece;
+       
+       self.tiles[from_pos].piece_on_tile = Piece::new(Color::White, PieceType::Empty, from_pos);
     }
-    
     
     pub fn make_move(&mut self, player_move: Move) -> bool { 
         let selected_piece = self.tiles[player_move.from].piece_on_tile.clone();

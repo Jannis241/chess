@@ -57,7 +57,7 @@ fn draw_board(board: &Board, cursor_pos: &usize, legal_moves: &Vec<usize>, selec
 
 fn clear_terminal() {
     // ANSI escape code to clear the terminal
-    print!("\x1B[2J\x1B[H");
+    //print!("\x1B[2J\x1B[H");
 }
 
 fn print_navigation() {
