@@ -11,10 +11,11 @@ pub use visuals::*;
 pub mod chess;
 pub mod visuals;
 pub mod input;
+pub mod engine;
 
 fn main() {
     let mut board = Board::new();
-    board.setup("r3k2r/pppppppp/n7/8/8/7N/PPPPPPPP/R3K2R w KQkq - 0 1");
+    board.setup("b7/2P1K1p1/pbr1N1P1/1NP1Pp2/1p2Q1PP/n1pP1pk1/p3B1q1/1n1R2Br w - - 0 1");
 
     let mut cursor_pos = 28;
     
