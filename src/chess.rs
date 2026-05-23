@@ -77,8 +77,6 @@ impl Piece {
             return vec![];
         }
 
-        println!("test änderung");
-
         let mut results = Vec::new();
         match self.piece_type {
             PieceType::Pawn => {
