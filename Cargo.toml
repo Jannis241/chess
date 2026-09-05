@@ -1,7 +1,7 @@
 [package]
 name = "chess"
 version = "0.1.0"
-edition = "2024"
+edition = "2021"
 
 [dependencies]
-crossterm = "0.29"
+crossterm = "0.27.0" # to constantly get the user input
