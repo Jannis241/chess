@@ -11,7 +11,6 @@ pub use visuals::*;
 pub mod chess;
 pub mod visuals;
 pub mod input;
-pub mod engine;
 
 fn main() {
     let mut board = Board::new();
