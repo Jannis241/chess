@@ -15,10 +15,10 @@ pub mod engine;
 
 fn main() {
     let mut board = Board::new();
-    board.setup("b7/2P1K1p1/pbr1N1P1/1NP1Pp2/1p2Q1PP/n1pP1pk1/p3B1q1/1n1R2Br w - - 0 1");
+    board.setup("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 
     let mut cursor_pos = 28;
-    
+
     let mut from = 0;
     let mut selected = false;
     loop {
@@ -31,8 +31,8 @@ fn main() {
         // draw legal moves
         if selected {
             let selected_piece = &board.get_piece_at_pos(from as i32);
-            let legal_moves: Vec<usize> = selected_piece.get_legal_moves(&mut board, true, true ).iter().map(|m| m.to).collect();        
-            
+            let legal_moves: Vec<usize> = selected_piece.get_legal_moves(&mut board, true, true ).iter().map(|m| m.to).collect();
+
             // if its their own piece draw legal moves
             if selected_piece.color == board.current_player{
                 visuals::draw(&board, &cursor_pos, &board.current_player, &legal_moves, Some(from));
@@ -74,7 +74,7 @@ fn main() {
 
                         // try to make the move
                         let valid = board.make_move(Move::new(from, cursor_pos));
-                        
+
                         // if the move is valid unselect the piece and reset the cursor
                         if valid {
                             selected = false;
@@ -83,7 +83,7 @@ fn main() {
 
                         // move is not valid
                         else {
-                            
+
                             let selected_piece = &board.get_piece_at_pos(cursor_pos as i32);
 
                             // if the user just switched from one piece to another update the start position
@@ -91,7 +91,7 @@ fn main() {
                             if selected_piece.color == board.current_player && selected_piece.piece_type != PieceType::Empty{
                                 from = cursor_pos;
                                 selected = true;
-                            } 
+                            }
 
                             // the user clicked on an enemy or empty piece, so just unselect
                             else {
@@ -106,15 +106,15 @@ fn main() {
                 else {
                     // user wants to select a piece
                     let selected_piece = &board.get_piece_at_pos(cursor_pos as i32);
-                    
+
                     // check if their own piece, if yes then select it, else do nothing
                     if selected_piece.piece_type != PieceType::Empty && selected_piece.color == board.current_player{
                         from = cursor_pos;
                         selected = true;
-                    } 
+                    }
                 }
             }
-            // unselecting 
+            // unselecting
             KeyCode::Esc => {
                 selected = false;
             }
